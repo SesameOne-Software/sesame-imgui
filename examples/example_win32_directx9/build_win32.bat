@@ -1,3 +1,21 @@
-@REM Build for Visual Studio compiler. Run your copy of vcvars32.bat or vcvarsall.bat to setup command-line compiler.
-mkdir Debug
-cl /nologo /Zi /MD /I .. /I ..\.. /I "%DXSDK_DIR%/Include" /D UNICODE /D _UNICODE *.cpp ..\..\backends\imgui_impl_dx9.cpp ..\..\backends\imgui_impl_win32.cpp ..\..\imgui*.cpp /FeDebug/example_win32_directx9.exe /FoDebug/ /link /LIBPATH:"%DXSDK_DIR%/Lib/x86" d3d9.lib
+@echo off
+if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" (
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+) else (
+    if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" (
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+    ) else (
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+    )
+)
+
+set include_dir="%DXSDK_DIR%Include"
+set compilerflags=/Od /Zi /EHsc /std:c++latest /I %include_dir% /OPT:REF /INCREMENTAL
+set libs=kernel32.lib user32.lib d3d9.lib d3dx9.lib
+set library_dir="%DXSDK_DIR%Lib/x64"
+set linkerflags=/OUT:examples/example_win32_directx9/bin/main.exe /LIBPATH:%library_dir% /OPT:REF /INCREMENTAL
+set to_compile=imgui_widgets.cpp imgui_draw.cpp imgui.cpp backends/imgui_impl_dx9.cpp backends/imgui_impl_win32.cpp examples/example_win32_directx9/*.cpp
+
+set out_str=%compilerflags% %to_compile% /link %libs% %linkerflags%
+
+cl.exe %out_str%

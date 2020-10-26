@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        ".ixx": "cpp",
+        "*.tpp": "cpp",
+        "cstdint": "cpp",
+        "optional": "cpp",
+        "xtree": "cpp",
+        "initializer_list": "cpp",
+        "xstring": "cpp",
+        "unordered_map": "cpp",
+        "*.rh": "cpp"
+    },
+    "terminal.integrated.shell.windows": "cmd.exe"
+}

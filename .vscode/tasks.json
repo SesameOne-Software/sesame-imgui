@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build C++ project",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": ".\\examples\\example_win32_directx9\\build_win32.bat"
+        },
+        {
+            "label": "Build & run C++ project",
+            "type": "shell",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "command": ".\\examples\\example_win32_directx9\\build_win32.bat && ..\\examples\\example_win32_directx9\\bin\\main.exe"
+        }
+    ]
+}
