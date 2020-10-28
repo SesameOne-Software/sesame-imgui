@@ -467,6 +467,13 @@ void ImGui::BulletTextV( const char* fmt, va_list args ) {
 //   Frame N + RepeatDelay + RepeatRate*N   true                     true              -                   true
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
+static float CalcMaxPopupHeightFromItemCount( int items_count ) {
+    ImGuiContext& g = *GImGui;
+    if ( items_count <= 0 )
+        return FLT_MAX;
+    return ( g.FontSize + g.Style.ItemSpacing.y ) * items_count - g.Style.ItemSpacing.y + ( g.Style.WindowPadding.y * 2 );
+}
+
 bool ImGui::ButtonBehavior( const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags ) {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow( );
@@ -1248,8 +1255,140 @@ void ImGui::Bullet( ) {
 }
 
 bool ImGui::Keybind( const char* label, int* key, int* key_mode, const ImVec2& size ) {
+    static std::vector<const char*> keybind_menu { "Disable", "On Hold", "On Toggle", "Always On" };
+
+    static auto button = [ & ] ( const char* slabel, bool open, bool& left_clicked, const ImVec2& size_arg = ImVec2( 0, 0 ), ImGuiButtonFlags flags = ImGuiButtonFlags_None ) -> bool {
+        ImGuiWindow* window = GetCurrentWindow( );
+        if ( window->SkipItems )
+            return false;
+
+        auto& animations = animation_list [ reinterpret_cast< uintptr_t >( key ) ];
+        auto& animations_key_mode = animation_list [ reinterpret_cast< uintptr_t >( key_mode ) ];
+
+        ImGuiContext& g = *GImGui;
+        const auto& io = GetIO( );
+        const ImGuiStyle& style = g.Style;
+        const ImGuiID id = window->GetID( label );
+        const ImVec2 label_size = CalcTextSize( open ? "..." : slabel, NULL, true );
+        const float expected_w = CalcItemWidth( );
+
+        ImVec2 pos = window->DC.CursorPos;
+        if ( ( flags & ImGuiButtonFlags_AlignTextBaseLine ) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset ) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+            pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+        ImVec2 size = CalcItemSize( size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f );
+
+        const ImRect bb( pos, pos + size );
+        ItemSize( size, style.FramePadding.y );
+        if ( !ItemAdd( bb, id ) )
+            return false;
+
+        if ( window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat )
+            flags |= ImGuiButtonFlags_Repeat;
+        bool hovered, held;
+        bool pressed = ButtonBehavior( bb, id, &hovered, &held, flags );
+        bool popup_open = IsPopupOpen( id, ImGuiPopupFlags_None );
+        bool has_window_size_constraint = ( g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint ) != 0;
+
+        bool menu_opened = hovered && io.MouseDown [ 1 ];
+
+        /* hovering animations */
+        const auto hover_color_inner = ColorConvertFloat4ToU32(
+            animate( animations.hover_fraction_inner, ( hovered || pressed || open || popup_open ) ? 1.0f : -1.0f, style.Colors [ ImGuiCol_FrameBg ], style.Colors [ ImGuiCol_FrameBgHovered ] )
+        );
+
+        animate( animations.main_fraction, animations.hover_fraction_outer, 0.0f, 1.0f );
+
+        if ( !open )
+            animations.main_fraction = 0.0f;
+
+        if ( animations.main_fraction >= 1.0f )
+            animations.hover_fraction_outer = -1.0f;
+        else if ( animations.main_fraction <= 0.0f )
+            animations.hover_fraction_outer = 1.0f;
+
+        animate( animations_key_mode.main_fraction, popup_open ? 0.5f : -0.5f, 0.0f, 1.0f );
+
+        // Render
+        RenderNavHighlight( bb, id );
+
+        RenderFrame( bb.Min, bb.Max + ImVec2( 0.0f, ( bb.Max.y - bb.Min.y ) * 0.1f ), GetColorU32( ImLerp( style.Colors [ ImGuiCol_FrameBg ], ImVec4( 0.0f, 0.0f, 0.0f, 1.0f ), 0.333f ) ), false, style.FrameRounding );
+
+        PushStyleColor( ImGuiCol_Border, hover_color_inner );
+        PushStyleVar( ImGuiStyleVar_FrameBorderSize, ImLerp( 0.0f, style.FrameBorderSize * 4.0f, animations.hover_fraction_inner ) );
+        RenderFrame( bb.Min, bb.Max, hover_color_inner, animations.hover_fraction_inner > 0.0f, style.FrameRounding );
+        PopStyleVar( );
+        PopStyleColor( );
+
+        if ( animations.hover_fraction_inner > 0.0f ) {
+            PushStyleColor( ImGuiCol_Border, ImLerp( style.Colors [ ImGuiCol_FrameBg ], style.Colors [ ImGuiCol_FrameBgActive ], animations.hover_fraction_inner ) );
+            PushStyleVar( ImGuiStyleVar_FrameBorderSize, ImLerp( style.FrameBorderSize, style.FrameBorderSize * 1.5f, animations.hover_fraction_inner ) );
+            RenderFrameBorder( bb.Min, bb.Max + ImVec2( 0.0f, ( bb.Max.y - bb.Min.y ) * 0.1f ), style.FrameRounding );
+            PopStyleVar( );
+            PopStyleColor( );
+        }
+
+        PushStyleColor( ImGuiCol_Text, ImLerp( ImVec4( style.Colors [ ImGuiCol_Text ].x, style.Colors [ ImGuiCol_Text ].y, style.Colors [ ImGuiCol_Text ].z, style.Colors [ ImGuiCol_Text ].w ), ImVec4( style.Colors [ ImGuiCol_Text ].x, style.Colors [ ImGuiCol_Text ].y, style.Colors [ ImGuiCol_Text ].z, style.Colors [ ImGuiCol_Text ].w * 0.5f ), animations.main_fraction ) );
+        RenderTextClipped( bb.Min + style.FramePadding, bb.Max - style.FramePadding, open ? "..." : slabel, NULL, &label_size, style.ButtonTextAlign, &bb );
+        PopStyleColor( );
+
+        if ( ( menu_opened || g.NavActivateId == id ) && !popup_open ) {
+            if ( window->DC.NavLayerCurrent == 0 )
+                window->NavLastIds [ 0 ] = id;
+            OpenPopupEx( id, ImGuiPopupFlags_None );
+            popup_open = true;
+        }
+
+        if ( !popup_open )
+            return pressed;
+
+        if ( has_window_size_constraint ) {
+            g.NextWindowData.Flags |= ImGuiNextWindowDataFlags_HasSizeConstraint;
+            g.NextWindowData.SizeConstraintRect.Min.x = ImMax( g.NextWindowData.SizeConstraintRect.Min.x, expected_w );
+        }
+        else {
+            SetNextWindowSizeConstraints( ImVec2( expected_w, 0.0f ), ImVec2( FLT_MAX, CalcMaxPopupHeightFromItemCount( keybind_menu.size( ) ) ) );
+        }
+
+        char name [ 16 ];
+        ImFormatString( name, IM_ARRAYSIZE( name ), "##Keybind_%02d", g.BeginPopupStack.Size ); // Recycle windows based on depth
+
+        // Peak into expected window size so we can position it
+        if ( ImGuiWindow* popup_window = FindWindowByName( name ) )
+            if ( popup_window->WasActive ) {
+                ImVec2 size_expected = CalcWindowExpectedSize( popup_window );
+                if ( flags & ImGuiComboFlags_PopupAlignLeft )
+                    popup_window->AutoPosLastDirection = ImGuiDir_Left;
+                ImRect r_outer = GetWindowAllowedExtentRect( popup_window );
+                ImVec2 pos = FindBestWindowPosForPopupEx( bb.GetBL( ), size_expected, &popup_window->AutoPosLastDirection, r_outer, bb, ImGuiPopupPositionPolicy_ComboBox );
+
+                pos.y = ImLerp( bb.Max.y, bb.Max.y + style.FramePadding.y * 2.0f, animations_key_mode.main_fraction );
+
+                SetNextWindowPos( pos );
+            }
+
+        // We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
+
+        // Horizontally align ourselves with the framed text
+        PushStyleVar( ImGuiStyleVar_WindowPadding, ImVec2( style.FramePadding.x, style.WindowPadding.y ) );
+        PushStyleVar( ImGuiStyleVar_Alpha, animations_key_mode.main_fraction );
+        left_clicked = Begin( name, NULL, window_flags );
+        PopStyleVar( );
+        PopStyleVar( );
+
+        // Automatically close popups
+        if ( pressed && ( window->Flags & ImGuiWindowFlags_Popup ) ) {
+            CloseCurrentPopup( );
+            left_clicked = false;
+        }
+
+        IMGUI_TEST_ENGINE_ITEM_INFO( id, label, window->DC.LastItemStatusFlags );
+        return pressed;
+    };
+
+    static ImGuiID active_keybind_id = 0;
     static std::vector<const char*> key_names {
-    "?",
+    "<Select Key>",
     "Mouse 1",
     "Mouse 2",
     "Cancel",
@@ -1435,25 +1574,46 @@ bool ImGui::Keybind( const char* label, int* key, int* key_mode, const ImVec2& s
 
     Text( label );
 
-    PushStyleColor( ImGuiCol_Border, ImLerp( style.Colors [ ImGuiCol_Border ], style.Colors [ ImGuiCol_FrameBgActive ], animations.hover_fraction_inner ) );
-    PushStyleColor( ImGuiCol_Button, style.Colors [ ImGuiCol_FrameBg ] );
-    PushStyleColor( ImGuiCol_ButtonHovered, style.Colors [ ImGuiCol_FrameBgHovered ] );
-    PushStyleColor( ImGuiCol_ButtonActive, style.Colors [ ImGuiCol_FrameBgActive ] );
-
-    if ( Button( key_names [ *key ], size ) ) {
-        ImGui::SetActiveID( id, window );
+    bool left_clicked = false;
+    if ( button( *key_mode == 2 ? "Always" : key_names [ *key ], active_keybind_id == id, left_clicked, size ) ) {
+        active_keybind_id = id;
     }
 
-    PopStyleColor( );
-    PopStyleColor( );
-    PopStyleColor( );
-    PopStyleColor( );
+    if ( *key_mode == 2 )
+        *key = 0;
 
-    bool value_changed = false;
-    int _key = *key;
+    if ( left_clicked ) {
+        // do stuff with keybind_menu
+        for ( int i = 0; i < keybind_menu.size( ); i++ ) {
+            bool selected = false;
+
+            switch ( i ) {
+                case 0: selected = !*key && *key_mode != 2; break;
+                case 1: selected = *key && *key_mode == 0; break;
+                case 2: selected = *key && *key_mode == 1; break;
+                case 3: selected = *key_mode == 2; break;
+            }
+
+            if ( ImGui::Selectable( keybind_menu [ i ], selected ) ) {
+                switch ( i ) {
+                    case 0: *key = 0; *key_mode = ImClamp( *key_mode, 0, 1 ); break;
+                    case 1: *key_mode = 0; break;
+                    case 2: *key_mode = 1; break;
+                    case 3: *key = 0; *key_mode = 2; break;
+                }
+            }
+        }
+
+        EndPopup( );
+    }
+
+    if ( *key_mode == 2 )
+        *key = 0;
+
+    int _key = 0;
 
     /* wait for key press */
-    if ( g.ActiveId == id ) {
+    if ( active_keybind_id == id ) {
         for ( auto i = 0; i < 5; i++ ) {
             if ( io.MouseDown [ i ] ) {
                 switch ( i ) {
@@ -1474,31 +1634,31 @@ bool ImGui::Keybind( const char* label, int* key, int* key_mode, const ImVec2& s
                         break;
                 }
 
-                value_changed = true;
-                ImGui::ClearActiveID( );
+                active_keybind_id = 0;
+
+                if ( _key )
+                    break;
             }
         }
 
-        if ( !value_changed ) {
+        if ( !_key ) {
             for ( auto i = VK_BACK; i <= VK_RMENU; i++ ) {
                 if ( io.KeysDown [ i ] ) {
                     _key = i;
-                    value_changed = true;
-                    ImGui::ClearActiveID( );
+                    active_keybind_id = 0;
                 }
             }
         }
 
-        if ( IsKeyPressedMap( ImGuiKey_Escape ) ) {
-            *key = 0;
-            ImGui::ClearActiveID( );
-        }
-        else {
+        if ( _key ) {
             *key = _key;
+            *key_mode = ImClamp( *key_mode, 0, 1 );
+        }
+        else if ( IsKeyPressedMap( ImGuiKey_Escape ) ) {
+            *key = 0;
+            active_keybind_id = 0;
         }
     }
-
-
 }
 
 //-------------------------------------------------------------------------
@@ -1727,13 +1887,6 @@ void ImGui::ShrinkWidths( ImGuiShrinkWidthItem* items, int count, float width_ex
 // - EndCombo()
 // - Combo()
 //-------------------------------------------------------------------------
-
-static float CalcMaxPopupHeightFromItemCount( int items_count ) {
-    ImGuiContext& g = *GImGui;
-    if ( items_count <= 0 )
-        return FLT_MAX;
-    return ( g.FontSize + g.Style.ItemSpacing.y ) * items_count - g.Style.ItemSpacing.y + ( g.Style.WindowPadding.y * 2 );
-}
 
 bool ImGui::BeginCombo( const char* label, int* v, const char* preview_value, ImGuiComboFlags flags ) {
     // Always consume the SetNextWindowSizeConstraint() call in our early return paths
@@ -7572,7 +7725,7 @@ bool    ImGui::TabItemEx( ImGuiTabBar* tab_bar, const char* label, bool* p_open,
     if ( is_tab_button )
         return pressed;
     return tab_contents_visible;
-    }
+}
 
 // [Public] This is call is 100% optional but it allows to remove some one-frame glitches when a tab has been unexpectedly removed.
 // To use it to need to call the function SetTabItemClosed() between BeginTabBar() and EndTabBar().
