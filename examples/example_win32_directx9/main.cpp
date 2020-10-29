@@ -161,8 +161,10 @@ int main( int, char** ) {
             static int test_keybind_key = 0;
             static int test_keybind_key_mode = 0;
 
+            static char test_textbox [ 256 ] { '\0' };
+
             ImGui::Checkbox( "Checkbox 1", &test_checkbox_0 );
-            ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 ); ImGui::SameLine( ); ImGui::ColorEdit4( "Color Picker", test_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel );
+            ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 );
             ImGui::Checkbox( "Checkbox 3", &test_checkbox_2 );
 
             ImGui::SliderFloat( "Float Slider", &test_slider_float, 0.0f, 100.0f );
@@ -176,9 +178,11 @@ int main( int, char** ) {
 
             ImGui::ListBox( "Listbox", &test_listbox, test_listbox_options.data( ), test_listbox_options.size( ) );
 
-            ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) );
+            ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) ); //ImGui::SameLine( ); ImGui::ColorEdit4( "Color Picker", test_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel );
 
             ImGui::Keybind( "Keybind", &test_keybind_key, &test_keybind_key_mode );
+
+            ImGui::InputText( "Textbox", test_textbox, sizeof( test_textbox ) );
 
             /*
             TODO:
