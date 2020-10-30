@@ -33,5 +33,6 @@
         "xtr1common": "cpp",
         "xutility": "cpp"
     },
-    "terminal.integrated.shell.windows": "cmd.exe"
+    "terminal.integrated.shell.windows": "cmd.exe",
+    "discord.enabled": true
 }

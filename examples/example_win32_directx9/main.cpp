@@ -16,6 +16,8 @@
 #include <string_view>
 #include <vector>
 
+#include "../../imgui_internal.h"
+
 // Data
 static LPDIRECT3D9              g_pD3D = NULL;
 static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
@@ -130,12 +132,36 @@ int main( int, char** ) {
         ImGui_ImplWin32_NewFrame( );
         ImGui::NewFrame( );
 
+        /* use imgui to draw on screen directly */ {
+            /* begin scene */
+            ImGuiIO& io = ImGui::GetIO( );
+
+            ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f );
+            ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f } );
+            ImGui::PushStyleColor( ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 0.0f } );
+            ImGui::Begin( "##Backbuffer", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs );
+
+            ImGui::SetWindowPos( ImVec2( 0, 0 ), ImGuiCond_Always );
+            ImGui::SetWindowSize( ImVec2( io.DisplaySize.x, io.DisplaySize.y ), ImGuiCond_Always );
+
+            const auto draw_list = ImGui::GetCurrentWindow( )->DrawList;
+
+            /* render */
+            draw_list->AddRect( ImVec2( 20.0f, 20.0f ), ImVec2( 200.0f, 200.0f ), ImGui::GetColorU32( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) ) );
+            draw_list->AddText( ImVec2( 40.0f, 40.0f ), ImGui::GetColorU32( ImVec4( 1.0f, 1.0f, 1.0f, 1.0f ) ), "Test" );
+
+            /* end scene */
+            draw_list->PushClipRectFullScreen( );
+
+            ImGui::End( );
+            ImGui::PopStyleColor( );
+            ImGui::PopStyleVar( 2 );
+        }
+
         ImGui::PushFont( ui_font );
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        {
-            ImGui::Begin( "Sesame" );
-
+        if ( ImGui::Begin( "Sesame", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar ) ) {
             ImGui::PushFont( ui_icons_font );
             ImGui::Text( "A    B    C    D    E    F    G" );
             ImGui::PopFont( );
@@ -167,22 +193,39 @@ int main( int, char** ) {
             ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 );
             ImGui::Checkbox( "Checkbox 3", &test_checkbox_2 );
 
+            ImGui::SameLine( );
+            ImGui::ColorEdit4( "##Color Picker1", test_color );
+
             ImGui::SliderFloat( "Float Slider", &test_slider_float, 0.0f, 100.0f );
             ImGui::SliderInt( "Int Slider", &test_slider_int, 0, 20 );
 
-            ImGui::Button( "Save Config" );
+            ImGui::SameLine( );
+            ImGui::ColorEdit4( "##Color Picker2", test_color );
+
+            if ( ImGui::Button( "Save Config" ) )
+                ImGui::OpenPopup( "Save Config##popup" );
+
             ImGui::Button( "Load Config" );
             ImGui::Button( "Refresh Config List" );
 
+            ImGui::SameLine( );
+            ImGui::ColorEdit4( "##Color Picker3", test_color );
+
             ImGui::Combo( "Combobox", &test_combobox, test_combobox_options.data( ), test_combobox_options.size( ) );
+
+            ImGui::SameLine( );
+            ImGui::ColorEdit4( "##Color Picker4", test_color );
 
             ImGui::ListBox( "Listbox", &test_listbox, test_listbox_options.data( ), test_listbox_options.size( ) );
 
-            ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) ); //ImGui::SameLine( ); ImGui::ColorEdit4( "Color Picker", test_color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel );
+            ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) );
 
             ImGui::Keybind( "Keybind", &test_keybind_key, &test_keybind_key_mode );
 
             ImGui::InputText( "Textbox", test_textbox, sizeof( test_textbox ) );
+
+            ImGui::SameLine( );
+            ImGui::ColorEdit4( "##Color Picker5", test_color );
 
             /*
             TODO:
@@ -192,6 +235,24 @@ int main( int, char** ) {
             - MULTISELECT
             - TEXT BOX
             */
+
+            ImGui::SetNextWindowPos( ImVec2( ImGui::GetWindowPos( ).x + ImGui::GetWindowSize( ).x * 0.5f, ImGui::GetWindowPos( ).y + ImGui::GetWindowSize( ).y * 0.5f ), ImGuiCond_Always, ImVec2( 0.5f, 0.5f ) );
+
+            if ( ImGui::BeginPopupModal( "Save Config##popup", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings ) ) {
+                ImGui::TextColored( ImVec4( 1.0f, 0.25f, 0.25f, 1.0f ), "There already is a config with the same name in this location.\nAre you sure you want to overwrite the config?" );
+
+                if ( ImGui::Button( "Confirm", ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ) ) ) {
+                    ImGui::CloseCurrentPopup( );
+                }
+
+                ImGui::SameLine( );
+
+                if ( ImGui::Button( "Cancel", ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ) ) ) {
+                    ImGui::CloseCurrentPopup( );
+                }
+
+                ImGui::EndPopup( );
+            }
 
             ImGui::End( );
         }
