@@ -2,21 +2,7 @@
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
-#include "../../imgui.h"
-#include "../../backends/imgui_impl_dx9.h"
-#include "../../backends/imgui_impl_win32.h"
-#include <d3d9.h>
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
-#include <tchar.h>
-
-#include "sesame_icons.hpp"
-#include "sesame_ui.hpp"
-
-#include <string_view>
-#include <vector>
-
-#include "../../imgui_internal.h"
+#include "gui.hpp"
 
 // Data
 static LPDIRECT3D9              g_pD3D = NULL;
@@ -35,7 +21,7 @@ int main( int, char** ) {
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEX wc = { sizeof( WNDCLASSEX ), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle( NULL ), NULL, NULL, NULL, NULL, _T( "ImGui Example" ), NULL };
     ::RegisterClassEx( &wc );
-    HWND hwnd = ::CreateWindow( wc.lpszClassName, _T( "Dear ImGui DirectX9 Example" ), WS_OVERLAPPEDWINDOW, 100, 100, 600, 800, NULL, NULL, wc.hInstance, NULL );
+    HWND hwnd = ::CreateWindow( wc.lpszClassName, _T( "Dear ImGui DirectX9 Example" ), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 720, NULL, NULL, wc.hInstance, NULL );
 
     // Initialize Direct3D
     if ( !CreateDeviceD3D( hwnd ) ) {
@@ -132,6 +118,12 @@ int main( int, char** ) {
         ImGui_ImplWin32_NewFrame( );
         ImGui::NewFrame( );
 
+        static bool main_open = true;
+
+        ImGui::BeginMain( "Sesame V3.0.0", &main_open ); {
+            ImGui::End( );
+        }
+
         /* use imgui to draw on screen directly */ {
             /* begin scene */
             ImGuiIO& io = ImGui::GetIO( );
@@ -175,19 +167,19 @@ int main( int, char** ) {
 
             static int test_combobox = 0;
 
-            static std::vector<const char*> test_combobox_options { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten" };
+            static std::vector<const char*> test_combobox_options{ "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten" };
 
-            static float test_color [ ] { 0.8f, 0.2f, 0.95f, 1.0f };
+            static float test_color [ ]{ 0.8f, 0.2f, 0.95f, 1.0f };
 
             static int test_listbox = 0;
-            static std::vector<const char*> test_listbox_options { "One", "Two", "Three", "Four", "Five" };
-            static std::vector<const char*> hitboxes { "head", "neck","upper chest","chest", "pelvis","arms","legs", "feet" };
-            static std::vector<int> bool_hitboxes { 0, 0, 0, 0, 0, 0, 0, 0 };
+            static std::vector<const char*> test_listbox_options{ "One", "Two", "Three", "Four", "Five" };
+            static std::vector<const char*> hitboxes{ "head", "neck","upper chest","chest", "pelvis","arms","legs", "feet" };
+            static std::vector<int> bool_hitboxes{ 0, 0, 0, 0, 0, 0, 0, 0 };
 
             static int test_keybind_key = 0;
             static int test_keybind_key_mode = 0;
 
-            static char test_textbox [ 256 ] { '\0' };
+            static char test_textbox[256]{ '\0' };
 
             ImGui::Checkbox( "Checkbox 1", &test_checkbox_0 );
             ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 );
@@ -265,7 +257,7 @@ int main( int, char** ) {
         g_pd3dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
         g_pd3dDevice->SetRenderState( D3DRS_SCISSORTESTENABLE, FALSE );
 
-        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA( ( int )( clear_color.x * 255.0f ), ( int )( clear_color.y * 255.0f ), ( int )( clear_color.z * 255.0f ), ( int )( clear_color.w * 255.0f ) );
+        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA( ( int )(clear_color.x * 255.0f), ( int )(clear_color.y * 255.0f), ( int )(clear_color.z * 255.0f), ( int )(clear_color.w * 255.0f) );
         g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0 );
 
         if ( g_pd3dDevice->BeginScene( ) >= 0 ) {
@@ -295,7 +287,7 @@ int main( int, char** ) {
 // Helper functions
 
 bool CreateDeviceD3D( HWND hWnd ) {
-    if ( ( g_pD3D = Direct3DCreate9( D3D_SDK_VERSION ) ) == NULL )
+    if ( (g_pD3D = Direct3DCreate9( D3D_SDK_VERSION )) == NULL )
         return false;
 
     // Create the D3DDevice
@@ -335,20 +327,20 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
         return true;
 
     switch ( msg ) {
-        case WM_SIZE:
-            if ( g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED ) {
-                g_d3dpp.BackBufferWidth = LOWORD( lParam );
-                g_d3dpp.BackBufferHeight = HIWORD( lParam );
-                ResetDevice( );
-            }
+    case WM_SIZE:
+        if ( g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED ) {
+            g_d3dpp.BackBufferWidth = LOWORD( lParam );
+            g_d3dpp.BackBufferHeight = HIWORD( lParam );
+            ResetDevice( );
+        }
+        return 0;
+    case WM_SYSCOMMAND:
+        if ( (wParam & 0xfff0) == SC_KEYMENU ) // Disable ALT application menu
             return 0;
-        case WM_SYSCOMMAND:
-            if ( ( wParam & 0xfff0 ) == SC_KEYMENU ) // Disable ALT application menu
-                return 0;
-            break;
-        case WM_DESTROY:
-            ::PostQuitMessage( 0 );
-            return 0;
+        break;
+    case WM_DESTROY:
+        ::PostQuitMessage( 0 );
+        return 0;
     }
     return ::DefWindowProc( hWnd, msg, wParam, lParam );
 }
