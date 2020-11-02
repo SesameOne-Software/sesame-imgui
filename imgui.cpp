@@ -4517,13 +4517,13 @@ void ImGui::EndChild( ) {
 bool ImGui::BeginChildFrame( ImGuiID id, const ImVec2& size, ImGuiWindowFlags extra_flags ) {
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
-    PushStyleColor( ImGuiCol_ChildBg, style.Colors [ ImGuiCol_FrameBg ] );
+    //PushStyleColor( ImGuiCol_ChildBg, style.Colors [ ImGuiCol_FrameBg ] );
     PushStyleVar( ImGuiStyleVar_ChildRounding, style.FrameRounding );
-    PushStyleVar( ImGuiStyleVar_ChildBorderSize, style.FrameBorderSize );
-    PushStyleVar( ImGuiStyleVar_WindowPadding, style.FramePadding );
+    PushStyleVar( ImGuiStyleVar_ChildBorderSize, 0.0f );
+    PushStyleVar( ImGuiStyleVar_WindowPadding, style.WindowPadding );
     bool ret = BeginChild( id, size, true, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysUseWindowPadding | extra_flags );
     PopStyleVar( 3 );
-    PopStyleColor( );
+    //PopStyleColor( );
     return ret;
 }
 
@@ -5465,11 +5465,11 @@ bool ImGui::Begin( const char* name, bool* p_open, ImGuiWindowFlags flags ) {
         PushClipRect( host_rect.Min, host_rect.Max, false );
 
         // Draw modal window background (darkens what is behind them, all viewports)
-        const bool dim_bg_for_modal = (flags & ImGuiWindowFlags_Modal) && window == GetTopMostPopupModal( ) && window->HiddenFramesCannotSkipItems <= 0;
-        const bool dim_bg_for_window_list = g.NavWindowingTargetAnim && (window == g.NavWindowingTargetAnim->RootWindow);
-        if ( dim_bg_for_modal || dim_bg_for_window_list )         {
+        const bool dim_bg_for_modal = ( flags & ImGuiWindowFlags_Modal ) && window == GetTopMostPopupModal( ) && window->HiddenFramesCannotSkipItems <= 0;
+        const bool dim_bg_for_window_list = g.NavWindowingTargetAnim && ( window == g.NavWindowingTargetAnim->RootWindow );
+        if ( dim_bg_for_modal || dim_bg_for_window_list ) {
             const ImU32 dim_bg_col = GetColorU32( dim_bg_for_modal ? ImGuiCol_ModalWindowDimBg : ImGuiCol_NavWindowingDimBg, g.DimBgRatio );
-            window->DrawList->AddRectFilled( parent_window->Pos, ImVec2(parent_window->Pos.x + parent_window->Size.x, parent_window->Pos.y + parent_window->Size.y ), dim_bg_col );
+            window->DrawList->AddRectFilled( parent_window->Pos, ImVec2( parent_window->Pos.x + parent_window->Size.x, parent_window->Pos.y + parent_window->Size.y ), dim_bg_col );
         }
 
         // Draw navigation selection/windowing rectangle background

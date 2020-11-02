@@ -122,12 +122,6 @@ static bool             InputTextFilterCharacter( unsigned int* p_char, ImGuiInp
 static int              InputTextCalcTextLenAndLineCount( const char* text_begin, const char** out_text_end );
 static ImVec2           InputTextCalcTextSizeW( const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false );
 
-struct animation_data_t {
-    float hover_fraction_inner = 0.0f;
-    float hover_fraction_outer = 0.0f;
-    float main_fraction = 0.0f;
-};
-
 std::unordered_map< uintptr_t/*option_address*/, animation_data_t/*animation_data*/ > animation_list {};
 
 template <typename type>
@@ -5844,6 +5838,9 @@ bool ImGui::TreeNodeBehavior( ImGuiID id, ImGuiTreeNodeFlags flags, const char* 
     if ( window->SkipItems )
         return false;
 
+    /* more default flags */
+    flags |= ImGuiTreeNodeFlags_Framed;
+
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
     const bool display_frame = ( flags & ImGuiTreeNodeFlags_Framed ) != 0;
@@ -5978,7 +5975,7 @@ bool ImGui::TreeNodeBehavior( ImGuiID id, ImGuiTreeNodeFlags flags, const char* 
     if ( display_frame ) {
         // Framed type
         const ImU32 bg_col = GetColorU32( ( held && hovered ) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header );
-        RenderFrame( frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding );
+        RenderFrame( frame_bb.Min, frame_bb.Max, bg_col, false, style.FrameRounding );
         RenderNavHighlight( frame_bb, id, nav_highlight_flags );
         if ( flags & ImGuiTreeNodeFlags_Bullet )
             RenderBullet( window->DrawList, ImVec2( text_pos.x - text_offset_x * 0.60f, text_pos.y + g.FontSize * 0.5f ), text_col );

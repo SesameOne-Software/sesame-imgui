@@ -180,7 +180,8 @@ void ImGui::StyleColorsSesame( ImGuiStyle* dst ) {
 
     style->WindowBorderSize = 0.0f;
 
-    style->ChildBorderSize = style->FrameBorderSize = style->PopupBorderSize = style->TabBorderSize = style->WindowBorderSize = 1.0f;
+    style->ChildBorderSize = style->FrameBorderSize = style->PopupBorderSize = style->TabBorderSize = 1.0f;
+    style->WindowBorderSize = 0.0f;
 
     style->ScrollbarSize = 2.0f;
     style->ScrollbarRounding = 0.0f;
@@ -193,12 +194,12 @@ void ImGui::StyleColorsSesame( ImGuiStyle* dst ) {
 
     colors [ ImGuiCol_Text ] = ImVec4( 1.00f, 1.00f, 1.00f, 1.00f );
     colors [ ImGuiCol_TextDisabled ] = ImVec4( 0.50f, 0.50f, 0.50f, 1.00f );
-    colors [ ImGuiCol_WindowBg ] = ImVec4( 0.09f, 0.12f, 0.16f, 1.0f );
-    colors [ ImGuiCol_ChildBg ] = ImVec4( 0.00f, 0.00f, 0.00f, 0.00f );
+    colors [ ImGuiCol_WindowBg ] = ImVec4( 0.125f, 0.149f, 0.176f, 1.0f );
+    colors [ ImGuiCol_ChildBg ] = ImVec4( 0.129, 0.164, 0.211, 1.00f );
     colors [ ImGuiCol_PopupBg ] = ImVec4( 0.12f, 0.17f, 0.23f, 1.00f );
     colors [ ImGuiCol_Border ] = ImVec4( 0.20f, 0.16f, 0.24f, 1.00f );
     colors [ ImGuiCol_BorderShadow ] = ImVec4( 0.00f, 0.00f, 0.00f, 0.00f );
-    colors [ ImGuiCol_FrameBg ] = ImVec4( 0.12f, 0.17f, 0.23f, 1.00f );
+    colors [ ImGuiCol_FrameBg ] = ImVec4( 0.152, 0.192, 0.247, 1.00f );
     colors [ ImGuiCol_FrameBgHovered ] = ImVec4( 0.09f, 0.12f, 0.16f, 1.00f );
     colors [ ImGuiCol_FrameBgActive ] = ImVec4( 0.80f, 0.32f, 0.88f, 1.00f );
     colors [ ImGuiCol_TitleBg ] = ImVec4( 0.15f, 0.16f, 0.24f, 1.00f );
@@ -215,10 +216,10 @@ void ImGui::StyleColorsSesame( ImGuiStyle* dst ) {
     colors [ ImGuiCol_Button ] = ImVec4( 0.80f, 0.32f, 0.88f, 1.00f );
     colors [ ImGuiCol_ButtonHovered ] = ImVec4( 0.72f, 0.15f, 0.81f, 1.00f );
     colors [ ImGuiCol_ButtonActive ] = ImVec4( 0.67f, 0.14f, 0.76f, 1.00f );
-    colors [ ImGuiCol_Header ] = ImVec4( 0.80f, 0.32f, 0.88f, 1.00f );
-    colors [ ImGuiCol_HeaderHovered ] = ImVec4( 0.80f, 0.32f, 0.88f, 1.00f );
-    colors [ ImGuiCol_HeaderActive ] = ImVec4( 0.80f, 0.32f, 0.88f, 1.00f );
-    colors [ ImGuiCol_Separator ] = colors [ ImGuiCol_Border ];
+    colors [ ImGuiCol_Header ] = ImVec4( 0.12f, 0.17f, 0.23f, 1.00f );
+    colors [ ImGuiCol_HeaderHovered ] = ImVec4( 0.12f, 0.17f, 0.23f, 1.00f );
+    colors [ ImGuiCol_HeaderActive ] = ImVec4( 0.12f, 0.17f, 0.23f, 1.00f );
+    colors [ ImGuiCol_Separator ] = ImVec4( 1.00f, 1.00f, 1.00f, 0.1f );
     colors [ ImGuiCol_SeparatorHovered ] = ImVec4( 0.10f, 0.40f, 0.75f, 1.00f );
     colors [ ImGuiCol_SeparatorActive ] = ImVec4( 0.10f, 0.40f, 0.75f, 1.00f );
     colors [ ImGuiCol_ResizeGrip ] = ImVec4( 0.80f, 0.32f, 0.88f, 1.00f );

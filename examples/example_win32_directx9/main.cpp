@@ -90,16 +90,17 @@ int main( int, char** ) {
     };
 
     const auto ui_font = io.Fonts->AddFontFromMemoryTTF( ( void* )sesame_ui_data, sesame_ui_size, 15.0f, nullptr, /*custom_font_ranges*/io.Fonts->GetGlyphRangesDefault( ) );
+    const auto ui_small_font = io.Fonts->AddFontFromMemoryTTF( ( void* )sesame_ui_data, sesame_ui_size, 12.0f, nullptr, /*custom_font_ranges*/io.Fonts->GetGlyphRangesDefault( ) );
     const auto ui_icons_font = io.Fonts->AddFontFromMemoryTTF( ( void* )sesame_icons_data, sesame_icons_size, 28.0f, nullptr, io.Fonts->GetGlyphRangesDefault( ) );
 
     // Our state
-    ImVec4 clear_color = ImVec4( 0.0f, 0.0f, 0.0f, 1.0f );
+    ImVec4 clear_color = ImVec4( 1.0f, 1.0f, 1.0f, 1.0f );
 
     // Main loop
     MSG msg;
     ZeroMemory( &msg, sizeof( msg ) );
 
-    // ImGui::GetStyle ( ).ScaleAllSizes ( 2.0f );
+    //ImGui::GetStyle ( ).ScaleAllSizes ( 2.0f );
 
     while ( msg.message != WM_QUIT ) {
         // Poll and handle messages (inputs, window resize, etc.)
@@ -120,9 +121,7 @@ int main( int, char** ) {
 
         static bool main_open = true;
 
-        ImGui::BeginMain( "Sesame V3.0.0", &main_open ); {
-            ImGui::End( );
-        }
+        ImGui::PushFont( ui_font );
 
         /* use imgui to draw on screen directly */ {
             /* begin scene */
@@ -131,7 +130,7 @@ int main( int, char** ) {
             ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0.0f );
             ImGui::PushStyleVar( ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f } );
             ImGui::PushStyleColor( ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 0.0f } );
-            ImGui::Begin( "##Backbuffer", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs );
+            ImGui::Begin( "##Backbuffer", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs );
 
             ImGui::SetWindowPos( ImVec2( 0, 0 ), ImGuiCond_Always );
             ImGui::SetWindowSize( ImVec2( io.DisplaySize.x, io.DisplaySize.y ), ImGuiCond_Always );
@@ -142,6 +141,7 @@ int main( int, char** ) {
             draw_list->AddRect( ImVec2( 20.0f, 20.0f ), ImVec2( 200.0f, 200.0f ), ImGui::GetColorU32( ImVec4( 1.0f, 0.0f, 0.0f, 1.0f ) ) );
             draw_list->AddText( ImVec2( 40.0f, 40.0f ), ImGui::GetColorU32( ImVec4( 1.0f, 1.0f, 1.0f, 1.0f ) ), "Test" );
 
+
             /* end scene */
             draw_list->PushClipRectFullScreen( );
 
@@ -150,83 +150,19 @@ int main( int, char** ) {
             ImGui::PopStyleVar( 2 );
         }
 
-        ImGui::PushFont( ui_font );
+        if ( ImGui::custom::Begin( "Sesame v3.2.0", &main_open, ui_small_font ) ) {
+            static int cur_tab = 0;
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        if ( ImGui::Begin( "Sesame", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar ) ) {
-            ImGui::PushFont( ui_icons_font );
-            ImGui::Text( "A    B    C    D    E    F    G" );
-            ImGui::PopFont( );
+            if ( ImGui::custom::BeginTabs( &cur_tab, ui_icons_font ) ) {
+                ImGui::custom::AddTab( "A" );
+                ImGui::custom::AddTab( "B" );
+                ImGui::custom::AddTab( "C" );
+                ImGui::custom::AddTab( "D" );
+                ImGui::custom::AddTab( "E" );
+                ImGui::custom::AddTab( "F" );
 
-            static bool test_checkbox_0 = false;
-            static bool test_checkbox_1 = false;
-            static bool test_checkbox_2 = false;
-
-            static float test_slider_float = 0.0f;
-            static int test_slider_int = 0;
-
-            static int test_combobox = 0;
-
-            static std::vector<const char*> test_combobox_options{ "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten" };
-
-            static float test_color [ ]{ 0.8f, 0.2f, 0.95f, 1.0f };
-
-            static int test_listbox = 0;
-            static std::vector<const char*> test_listbox_options{ "One", "Two", "Three", "Four", "Five" };
-            static std::vector<const char*> hitboxes{ "head", "neck","upper chest","chest", "pelvis","arms","legs", "feet" };
-            static std::vector<int> bool_hitboxes{ 0, 0, 0, 0, 0, 0, 0, 0 };
-
-            static int test_keybind_key = 0;
-            static int test_keybind_key_mode = 0;
-
-            static char test_textbox[256]{ '\0' };
-
-            ImGui::Checkbox( "Checkbox 1", &test_checkbox_0 );
-            ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 );
-            ImGui::Checkbox( "Checkbox 3", &test_checkbox_2 );
-
-            ImGui::SameLine( );
-            ImGui::ColorEdit4( "##Color Picker1", test_color );
-
-            ImGui::SliderFloat( "Float Slider", &test_slider_float, 0.0f, 100.0f );
-            ImGui::SliderInt( "Int Slider", &test_slider_int, 0, 20 );
-
-            ImGui::SameLine( );
-            ImGui::ColorEdit4( "##Color Picker2", test_color );
-
-            if ( ImGui::Button( "Save Config" ) )
-                ImGui::OpenPopup( "Save Config##popup" );
-
-            ImGui::Button( "Load Config" );
-            ImGui::Button( "Refresh Config List" );
-
-            ImGui::SameLine( );
-            ImGui::ColorEdit4( "##Color Picker3", test_color );
-
-            ImGui::Combo( "Combobox", &test_combobox, test_combobox_options.data( ), test_combobox_options.size( ) );
-
-            ImGui::SameLine( );
-            ImGui::ColorEdit4( "##Color Picker4", test_color );
-
-            ImGui::ListBox( "Listbox", &test_listbox, test_listbox_options.data( ), test_listbox_options.size( ) );
-
-            ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) );
-
-            ImGui::Keybind( "Keybind", &test_keybind_key, &test_keybind_key_mode );
-
-            ImGui::InputText( "Textbox", test_textbox, sizeof( test_textbox ) );
-
-            ImGui::SameLine( );
-            ImGui::ColorEdit4( "##Color Picker5", test_color );
-
-            /*
-            TODO:
-            - KEYBINDS
-            - COLOR PICKER
-            - COMBO BOX
-            - MULTISELECT
-            - TEXT BOX
-            */
+                ImGui::custom::EndTabs( );
+            }
 
             ImGui::SetNextWindowPos( ImVec2( ImGui::GetWindowPos( ).x + ImGui::GetWindowSize( ).x * 0.5f, ImGui::GetWindowPos( ).y + ImGui::GetWindowSize( ).y * 0.5f ), ImGuiCond_Always, ImVec2( 0.5f, 0.5f ) );
 
@@ -246,6 +182,205 @@ int main( int, char** ) {
                 ImGui::EndPopup( );
             }
 
+            bool open_save_modal = false;
+
+            switch ( cur_tab ) {
+                case 0: break;
+                case 1: {
+                    static int sub_tabs = 0;
+
+                    if ( ImGui::custom::BeginSubtabs( &sub_tabs ) ) {
+                        ImGui::custom::AddSubtab( "General", "General ragebot and accuracy settings", [ & ] ( ) {
+                            static bool test_checkbox_0 = false;
+                            static bool test_checkbox_1 = false;
+                            static bool test_checkbox_2 = false;
+
+                            static float test_slider_float = 0.0f;
+                            static int test_slider_int = 0;
+
+                            static int test_combobox = 0;
+
+                            static std::vector<const char*> test_combobox_options { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten" };
+
+                            static float test_color [ ] { 0.8f, 0.2f, 0.95f, 1.0f };
+
+                            static int test_listbox = 0;
+                            static std::vector<const char*> test_listbox_options { "One", "Two", "Three", "Four", "Five" };
+                            static std::vector<const char*> hitboxes { "head", "neck","upper chest","chest", "pelvis","arms","legs", "feet" };
+                            static std::vector<int> bool_hitboxes { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+                            static int test_keybind_key = 0;
+                            static int test_keybind_key_mode = 0;
+
+                            static char test_textbox [ 256 ] { '\0' };
+
+                            /* Weapon Settings */
+                            ImGui::BeginChildFrame( ImGui::GetID( "Weapon Settings" ), ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ), ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove ); {
+                                ImGui::SetCursorPosX( ImGui::GetCursorPosX( ) + ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::CalcTextSize( "Weapon Settings" ).x * 0.5f );
+                                ImGui::Text( "Weapon Settings" );
+                                ImGui::Separator( );
+
+                                ImGui::Checkbox( "Checkbox 1", &test_checkbox_0 );
+                                ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 );
+                                ImGui::Checkbox( "Checkbox 3", &test_checkbox_2 );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker1", test_color );
+
+                                ImGui::SliderFloat( "Float Slider", &test_slider_float, 0.0f, 100.0f );
+                                ImGui::SliderInt( "Int Slider", &test_slider_int, 0, 20 );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker2", test_color );
+
+                                if ( ImGui::Button( "Save Config" ) )
+                                    open_save_modal = true;
+
+                                ImGui::Button( "Load Config" );
+                                ImGui::Button( "Refresh Config List" );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker3", test_color );
+
+                                ImGui::EndChildFrame( );
+                            }
+
+                            ImGui::SameLine( );
+
+                            /* Hitscan */
+                            ImGui::BeginChildFrame( ImGui::GetID( "Hitscan" ), ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ), ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove ); {
+                                ImGui::SetCursorPosX( ImGui::GetCursorPosX( ) + ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::CalcTextSize( "Hitscan" ).x * 0.5f );
+                                ImGui::Text( "Hitscan" );
+                                ImGui::Separator( );
+
+                                ImGui::Combo( "Combobox", &test_combobox, test_combobox_options.data( ), test_combobox_options.size( ) );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker4", test_color );
+
+                                ImGui::ListBox( "Listbox", &test_listbox, test_listbox_options.data( ), test_listbox_options.size( ) );
+
+                                ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) );
+
+                                ImGui::Keybind( "Keybind", &test_keybind_key, &test_keybind_key_mode );
+
+                                ImGui::InputText( "Textbox", test_textbox, sizeof( test_textbox ) );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker5", test_color );
+
+                                ImGui::EndChildFrame( );
+                            }
+                            } );
+
+                        ImGui::custom::AddSubtab( "Default", "Default settings used for unconfigured weapons", [ & ] ( ) {
+                            static bool test_checkbox_0 = false;
+                            static bool test_checkbox_1 = false;
+                            static bool test_checkbox_2 = false;
+
+                            static float test_slider_float = 0.0f;
+                            static int test_slider_int = 0;
+
+                            static int test_combobox = 0;
+
+                            static std::vector<const char*> test_combobox_options { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten" };
+
+                            static float test_color [ ] { 0.8f, 0.2f, 0.95f, 1.0f };
+
+                            static int test_listbox = 0;
+                            static std::vector<const char*> test_listbox_options { "One", "Two", "Three", "Four", "Five" };
+                            static std::vector<const char*> hitboxes { "head", "neck","upper chest","chest", "pelvis","arms","legs", "feet" };
+                            static std::vector<int> bool_hitboxes { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+                            static int test_keybind_key = 0;
+                            static int test_keybind_key_mode = 0;
+
+                            static char test_textbox [ 256 ] { '\0' };
+
+                            /* Weapon Settings */
+                            ImGui::BeginChildFrame( ImGui::GetID( "Weapon Settings" ), ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ), ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove ); {
+                                ImGui::SetCursorPosX( ImGui::GetCursorPosX( ) + ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::CalcTextSize( "Weapon Settings" ).x * 0.5f );
+                                ImGui::Text( "Weapon Settings" );
+                                ImGui::Separator( );
+
+                                ImGui::Checkbox( "Checkbox 1", &test_checkbox_0 );
+                                ImGui::Checkbox( "Checkbox 2", &test_checkbox_1 );
+                                ImGui::Checkbox( "Checkbox 3", &test_checkbox_2 );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker1", test_color );
+
+                                ImGui::SliderFloat( "Float Slider", &test_slider_float, 0.0f, 100.0f );
+                                ImGui::SliderInt( "Int Slider", &test_slider_int, 0, 20 );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker2", test_color );
+
+                                if ( ImGui::Button( "Save Config" ) )
+                                    open_save_modal = true;
+
+                                ImGui::Button( "Load Config" );
+                                ImGui::Button( "Refresh Config List" );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker3", test_color );
+
+                                ImGui::EndChildFrame( );
+                            }
+
+                            ImGui::SameLine( );
+
+                            /* Hitscan */
+                            ImGui::BeginChildFrame( ImGui::GetID( "Hitscan" ), ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ), ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove ); {
+                                ImGui::SetCursorPosX( ImGui::GetCursorPosX( ) + ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::CalcTextSize( "Hitscan" ).x * 0.5f );
+                                ImGui::Text( "Hitscan" );
+                                ImGui::Separator( );
+
+                                ImGui::Combo( "Combobox", &test_combobox, test_combobox_options.data( ), test_combobox_options.size( ) );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker4", test_color );
+
+                                ImGui::ListBox( "Listbox", &test_listbox, test_listbox_options.data( ), test_listbox_options.size( ) );
+
+                                ImGui::MultiCombo( "Multicombo", ( bool* )bool_hitboxes.data( ), hitboxes.data( ), hitboxes.size( ) );
+
+                                ImGui::Keybind( "Keybind", &test_keybind_key, &test_keybind_key_mode );
+
+                                ImGui::InputText( "Textbox", test_textbox, sizeof( test_textbox ) );
+
+                                ImGui::SameLine( );
+                                ImGui::ColorEdit4( "##Color Picker5", test_color );
+
+                                ImGui::EndChildFrame( );
+                            }
+                            } );
+                        ImGui::custom::AddSubtab( "Pistol", "Pistol class configuration", [ ] ( ) { } );
+                        ImGui::custom::AddSubtab( "Revolver", "Revolver class configuration", [ ] ( ) { } );
+                        ImGui::custom::AddSubtab( "Rifle", "Rifle, SMG, and shotgun class configuration", [ ] ( ) { } );
+                        ImGui::custom::AddSubtab( "AWP", "AWP class configuration", [ ] ( ) { } );
+                        ImGui::custom::AddSubtab( "Auto", "Autosniper class configuration", [ ] ( ) { } );
+                        ImGui::custom::AddSubtab( "Scout", "Scout class configuration", [ ] ( ) { } );
+
+                        ImGui::custom::EndSubtabs( );
+                    }
+                } break;
+                case 2: break;
+                case 3: break;
+                case 4: break;
+                case 5: break;
+            }
+
+            if ( open_save_modal )
+                ImGui::OpenPopup( "Save Config##popup" );
+
+            ImGui::custom::End( );
+        }
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        if ( false && ImGui::Begin( "Sesame", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar ) ) {
+
+
             ImGui::End( );
         }
 
@@ -257,7 +392,7 @@ int main( int, char** ) {
         g_pd3dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
         g_pd3dDevice->SetRenderState( D3DRS_SCISSORTESTENABLE, FALSE );
 
-        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA( ( int )(clear_color.x * 255.0f), ( int )(clear_color.y * 255.0f), ( int )(clear_color.z * 255.0f), ( int )(clear_color.w * 255.0f) );
+        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA( ( int )( clear_color.x * 255.0f ), ( int )( clear_color.y * 255.0f ), ( int )( clear_color.z * 255.0f ), ( int )( clear_color.w * 255.0f ) );
         g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0 );
 
         if ( g_pd3dDevice->BeginScene( ) >= 0 ) {
@@ -287,7 +422,7 @@ int main( int, char** ) {
 // Helper functions
 
 bool CreateDeviceD3D( HWND hWnd ) {
-    if ( (g_pD3D = Direct3DCreate9( D3D_SDK_VERSION )) == NULL )
+    if ( ( g_pD3D = Direct3DCreate9( D3D_SDK_VERSION ) ) == NULL )
         return false;
 
     // Create the D3DDevice
@@ -327,20 +462,20 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
         return true;
 
     switch ( msg ) {
-    case WM_SIZE:
-        if ( g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED ) {
-            g_d3dpp.BackBufferWidth = LOWORD( lParam );
-            g_d3dpp.BackBufferHeight = HIWORD( lParam );
-            ResetDevice( );
-        }
-        return 0;
-    case WM_SYSCOMMAND:
-        if ( (wParam & 0xfff0) == SC_KEYMENU ) // Disable ALT application menu
+        case WM_SIZE:
+            if ( g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED ) {
+                g_d3dpp.BackBufferWidth = LOWORD( lParam );
+                g_d3dpp.BackBufferHeight = HIWORD( lParam );
+                ResetDevice( );
+            }
             return 0;
-        break;
-    case WM_DESTROY:
-        ::PostQuitMessage( 0 );
-        return 0;
+        case WM_SYSCOMMAND:
+            if ( ( wParam & 0xfff0 ) == SC_KEYMENU ) // Disable ALT application menu
+                return 0;
+            break;
+        case WM_DESTROY:
+            ::PostQuitMessage( 0 );
+            return 0;
     }
     return ::DefWindowProc( hWnd, msg, wParam, lParam );
 }
