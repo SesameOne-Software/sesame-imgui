@@ -461,7 +461,8 @@ void ImGui::custom::End( ) {
 
     /* window title @ bottom right */
     draw_list->AddRectFilled( ImVec2( window_pos.x + menu_bar_width, window_pos.y + window_size.y - title_size.y - style.FramePadding.y * 2.0f ), ImVec2( window_pos.x + window_size.x, window_pos.y + window_size.y ), GetColorU32( style.Colors [ ImGuiCol_FrameBg ] ) );
-    TextOutlined( ImVec2( window_pos.x + window_size.x - title_size.x - style.FramePadding.x, window_pos.y + window_size.y - title_size.y - style.FramePadding.y ), GetColorU32( style.Colors [ ImGuiCol_Text ] ), g_window_name.c_str( ) );
+
+    draw_list->AddText( ImVec2( window_pos.x + window_size.x - title_size.x - style.FramePadding.x, window_pos.y + window_size.y - title_size.y - style.FramePadding.y ), GetColorU32( style.Colors [ ImGuiCol_Text ] ), g_window_name.c_str( ) );
 
     const auto color_to = GetColorU32( ImVec4( 0.0f, 0.0f, 0.0f, 0.33f ) );
     const auto color_from = GetColorU32( ImVec4( 0.0f, 0.0f, 0.0f, 0.0f ) );

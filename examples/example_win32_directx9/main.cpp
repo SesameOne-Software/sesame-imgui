@@ -167,7 +167,7 @@ int main( int, char** ) {
             ImGui::SetNextWindowPos( ImVec2( ImGui::GetWindowPos( ).x + ImGui::GetWindowSize( ).x * 0.5f, ImGui::GetWindowPos( ).y + ImGui::GetWindowSize( ).y * 0.5f ), ImGuiCond_Always, ImVec2( 0.5f, 0.5f ) );
 
             if ( ImGui::BeginPopupModal( "Save Config##popup", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings ) ) {
-                ImGui::TextColored( ImVec4( 1.0f, 0.25f, 0.25f, 1.0f ), "There already is a config with the same name in this location.\nAre you sure you want to overwrite the config?" );
+                ImGui::TextColored( ImVec4( 1.0f, 0.1f, 0.1f, 1.0f ), "There already is a config with the same name in this location.\nAre you sure you want to overwrite the config?" );
 
                 if ( ImGui::Button( "Confirm", ImVec2( ImGui::GetWindowContentRegionWidth( ) * 0.5f - ImGui::GetStyle( ).FramePadding.x, 0.0f ) ) ) {
                     ImGui::CloseCurrentPopup( );
